@@ -23,7 +23,6 @@ return new class extends Migration
             $table->boolean('is_valid')->default(false);
             $table->foreignIdFor(Package::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(PaymentMethod::class)->constrained()->cascadeOnDelete();
-            $table->unsignedBigInteger('payment_method_id');
             $table->string('payment_receipt');
             $table->integer('total_payment');
             $table->timestamps();
