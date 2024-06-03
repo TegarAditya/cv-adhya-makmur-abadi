@@ -15,11 +15,13 @@ class SchoolImporter extends Importer
     {
         return [
             ImportColumn::make('name')
-                ->label('Nama Sekolah')
-                ->requiredMapping(),
+                ->label('Nama')
+                ->requiredMapping()
+                ->rules(['required', 'max:255']),
             ImportColumn::make('is_active')
                 ->label('Tampil')
                 ->requiredMapping()
+                ->rules(['required'])
                 ->boolean(),
         ];
     }

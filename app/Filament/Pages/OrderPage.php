@@ -169,7 +169,6 @@ class OrderPage extends SimplePage implements HasForms
                                 ->label('Bukti Pembayaran')
                                 ->helperText('Unggah bukti pembayaran')
                                 ->image()
-                                ->optimize('webp')
                                 ->imageEditor()
                                 ->required(),
                         ]),
