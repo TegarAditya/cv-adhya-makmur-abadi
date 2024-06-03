@@ -4,14 +4,20 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PackageResource\Pages;
 use App\Filament\Resources\PackageResource\RelationManagers;
+use App\Models\EducationGrade;
+use App\Models\EducationLevel;
 use App\Models\Package;
+use App\Models\Semester;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
 
 class PackageResource extends Resource
 {
@@ -35,20 +41,51 @@ class PackageResource extends Resource
                         Forms\Components\Select::make('semester_id')
                             ->label('Semester')
                             ->relationship('semester', 'name')
+                            ->live()
+                            ->afterStateUpdated(function (Set $set) {
+                                $set('education_grade_id', null);
+                                $set('education_level_id', null);
+                            })
                             ->required(),
                         Forms\Components\Select::make('education_grade_id')
                             ->label('Jenjang Edukasi')
                             ->relationship('educationGrade', 'name')
+                            ->live()
+                            ->afterStateUpdated(function (Set $set) {
+                                $set('education_level_id', null);
+                            })
+                            ->disabled(fn (Get $get) => $get('semester_id') === null)
                             ->required(),
                         Forms\Components\Select::make('education_level_id')
                             ->label('Kelas Edukasi')
                             ->relationship('educationLevel', 'name')
+                            ->live()
+                            ->disabled(fn (Get $get) => $get('education_grade_id') === null)
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                $semester = Semester::find($get('semester_id'))->name ?? '-';
+                                $level = EducationLevel::find($get('education_level_id'))->name ?? '-';
+                                $grade = EducationGrade::find($get('education_grade_id'))->name ?? '-';
+                                $set('name', 'BUKU BUPIN ' . $grade . ' ' . $level . ' ' . $semester);
+                            })
                             ->required(),
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nama Paket')
-                            ->required()
-                            ->columnSpanFull()
-                            ->maxLength(255),
+                        Forms\Components\Hidden::make('name'),
+                        Forms\Components\Section::make()
+                            ->schema([
+                                Forms\Components\Placeholder::make('ph')
+                                    ->hiddenLabel()
+                                    ->columnSpanFull()
+                                    ->content(function (Get $get, Set $set) {
+                                        $semester = Semester::find($get('semester_id'))->name ?? '-';
+                                        $level = EducationLevel::find($get('education_level_id'))->name ?? '-';
+                                        $grade = EducationGrade::find($get('education_grade_id'))->name ?? '-';
+
+                                        $name = 'BUKU BUPIN ' . $grade . ' ' . $level . ' ' . $semester;
+
+                                        $set('name', $name);
+
+                                        return new HtmlString('<span class="font-bold text-lg mx-auto">' . $name . '</span>');
+                                    }),
+                            ]),
                     ]),
                 Forms\Components\Section::make('Informasi Harga')
                     ->columns(1)
