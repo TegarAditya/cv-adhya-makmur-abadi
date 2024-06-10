@@ -128,6 +128,10 @@ class PackageResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Tampil')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Harga')
+                    ->money('IDR', locale: 'id')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
