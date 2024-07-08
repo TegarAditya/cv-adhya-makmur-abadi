@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\City;
+use App\Models\District;
 use App\Models\Order;
 use Filament\Actions\Action;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -9,6 +11,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Forms;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Pages\SimplePage;
 use Filament\Support\Exceptions\Halt;
@@ -119,14 +122,76 @@ class OrderPage extends SimplePage implements HasForms
                                 ->helperText('Pilih paket yang diinginkan')
                                 ->searchable()
                                 ->options(function (Get $get) {
-                                    return \App\Models\Package::where('semester_id', $get('semester'))
+                                    $options = \App\Models\Package::where('semester_id', $get('semester'))
                                         ->where('education_grade_id', $get('grade'))
                                         ->where('education_level_id', $get('level'))
                                         ->pluck('name', 'id')
                                         ->toArray();
+
+                                    foreach ($options as $key => $key) {
+                                        if (\App\Models\Package::find($key)->getRemainingStock() <= 0) {
+                                            unset($options[$key]);
+                                        }
+                                    }
+
+                                    foreach ($options as $key => $value) {
+                                        $options[$key] = $value . ' (Rp ' . number_format(\App\Models\Package::find($key)->price, 2) . ')';
+                                    }
+
+                                    return $options;
                                 })
                                 ->live()
                                 ->required(),
+                        ]),
+                    Forms\Components\Wizard\Step::make('shipment')
+                        ->label('Pengiriman')
+                        ->icon('heroicon-o-truck')
+                        ->schema([
+                            Forms\Components\Section::make()
+                                ->columns(2)
+                                ->schema([
+                                    Forms\Components\Select::make('city_id')
+                                        ->label('Kota/Kabupaten')
+                                        ->helperText('Pilih kota/kabupaten')
+                                        ->options(City::all()->pluck('name', 'id')->toArray())
+                                        ->live()
+                                        ->required(),
+                                    Forms\Components\Select::make('district_id')
+                                        ->label('Kecamatan')
+                                        ->helperText('Pilih kecamatan')
+                                        ->options(fn ($get) => $get('city_id') ? City::find($get('city_id'))->districts->pluck('name', 'id')->toArray() : [])
+                                        ->live()
+                                        ->disabled(fn ($get) => !$get('city_id'))
+                                        ->required(),
+                                    Forms\Components\Select::make('subdistrict_id')
+                                        ->label('Kelurahan/Desa')
+                                        ->helperText('Pilih kelurahan/desa')
+                                        ->options(fn ($get) => $get('district_id') ? District::find($get('district_id'))->subdistricts->pluck('name', 'id')->toArray() : [])
+                                        ->live()
+                                        ->afterStateUpdated(function (Set $set, Get $get) {
+                                            $set('postal_code', District::find($get('district_id'))->subdistricts->find($get('subdistrict_id'))->postal_code);
+                                        })
+                                        ->disabled(fn ($get) => !$get('district_id'))
+                                        ->required(),
+                                    Forms\Components\TextInput::make('postal_code')
+                                        ->label('Kode Pos')
+                                        ->helperText('Kode pos tempat tinggal')
+                                        ->placeholder('contoh: 12345')
+                                        ->required()
+                                        ->disabled(fn ($get) => !$get('subdistrict_id'))
+                                        ->validationMessages([
+                                            'required' => 'Kode pos harus diisi',
+                                        ]),
+                                    Forms\Components\TextInput::make('address')
+                                        ->label('Detail Alamat')
+                                        ->helperText('Detail alamat pengiriman')
+                                        ->placeholder('contoh: Jl. Jend. Sudirman No. 1')
+                                        ->required()
+                                        ->columnSpanFull()
+                                        ->validationMessages([
+                                            'required' => 'Alamat pengiriman harus diisi',
+                                        ]),
+                                ]),
                         ]),
                     Forms\Components\Wizard\Step::make('payment')
                         ->label('Pembayaran')

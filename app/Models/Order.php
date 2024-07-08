@@ -21,6 +21,10 @@ class Order extends Model
         'school_name',
         'is_valid',
         'payment_receipt',
+        'city_id',
+        'district_id',
+        'subdistrict_id',
+        'postal_code',
     ];
 
     protected $casts = [

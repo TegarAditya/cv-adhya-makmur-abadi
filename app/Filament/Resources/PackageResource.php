@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PackageResource\Pages;
 use App\Filament\Resources\PackageResource\RelationManagers;
+use App\Filament\Resources\PackageResource\RelationManagers\StocksRelationManager;
 use App\Models\EducationGrade;
 use App\Models\EducationLevel;
 use App\Models\Package;
@@ -17,7 +18,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
+use Termwind\Enums\Color;
 
 class PackageResource extends Resource
 {
@@ -132,6 +135,10 @@ class PackageResource extends Resource
                     ->label('Harga')
                     ->money('IDR', locale: 'id')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('remaining_stock')
+                    ->label('Stok')
+                    ->default(fn (Package $record) => $record->getRemainingStock())
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -154,6 +161,16 @@ class PackageResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('editPrice')
+                        ->label('Ubah Harga')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->color('warning')
+                        ->form(function (Collection $records) {
+                            return [
+                                Forms\Components\TextInput::make('price')
+                                    ->label('Harga')
+                            ];
+                        }),
                 ]),
             ]);
     }
@@ -161,7 +178,7 @@ class PackageResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            StocksRelationManager::class,
         ];
     }
 
