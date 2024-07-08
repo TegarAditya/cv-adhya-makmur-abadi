@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Enums\PackageActionEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -37,5 +37,30 @@ class Package extends Model
     public function educationLevel()
     {
         return $this->belongsTo(EducationLevel::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(PackageStock::class);
+    }
+
+    public function getRemainingStock(): int
+    {
+        $addition = $this->stocks()
+            ->where('action', PackageActionEnum::ADDITION)
+            ->sum('quantity');
+
+        $subtraction = $this->stocks()
+            ->where('action', PackageActionEnum::REDUCTION)
+            ->sum('quantity');
+
+        $out = $this->orders()->where('is_valid', true)->count();
+
+        return $addition - $subtraction - $out;
     }
 }
