@@ -25,6 +25,7 @@ class Order extends Model
         'district_id',
         'subdistrict_id',
         'postal_code',
+        'address',
     ];
 
     protected $casts = [
@@ -39,5 +40,20 @@ class Order extends Model
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function subdistrict()
+    {
+        return $this->belongsTo(Subdistrict::class);
     }
 }

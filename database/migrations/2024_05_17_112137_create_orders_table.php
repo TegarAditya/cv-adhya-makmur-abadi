@@ -25,10 +25,11 @@ return new class extends Migration
             $table->string('school_name');
             $table->boolean('is_valid')->default(false);
             $table->foreignIdFor(Package::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(City::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(District::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Subdistrict::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(City::class);
+            $table->foreignIdFor(District::class);
+            $table->foreignIdFor(Subdistrict::class);
             $table->string('postal_code');
+            $table->string('address')->nullable();
             $table->foreignIdFor(PaymentMethod::class)->constrained()->cascadeOnDelete();
             $table->string('payment_receipt');
             $table->integer('total_payment');

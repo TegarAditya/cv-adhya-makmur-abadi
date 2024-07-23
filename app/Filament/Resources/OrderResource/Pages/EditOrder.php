@@ -13,6 +13,8 @@ class EditOrder extends EditRecord
 {
     protected static string $resource = OrderResource::class;
 
+    protected bool $is_notifiable = false;
+
     protected function getHeaderActions(): array
     {
         return [
@@ -20,11 +22,20 @@ class EditOrder extends EditRecord
         ];
     }
 
+    protected function beforeSave(): void
+    {
+        $data = $this->form->getState();
+
+        if ($data['is_notified']) {
+            $this->is_notifiable = true;
+        }
+    }
+
     protected function afterSave(): void
     {
         $data = $this->record->toArray();
 
-        if ($data['is_valid']) {
+        if ($data['is_valid'] && $this->is_notifiable) {
             $this->sendNotification($data);
         }
     }
