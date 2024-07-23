@@ -18,7 +18,11 @@ class SubdistrictResource extends Resource
 {
     protected static ?string $model = Subdistrict::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $modelLabel = 'Desa/Kelurahan';
+
+    protected static ?string $navigationIcon = 'heroicon-o-home-modern';
+
+    protected static ?string $navigationGroup = 'Master Wilayah';
 
     public static function form(Form $form): Form
     {
@@ -43,13 +47,16 @@ class SubdistrictResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('district_id')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('code')
+                    ->label('Kode')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('district_id')
+                    ->label('Kecamatan')
+                    ->formatStateUsing(fn ($record) => $record->district->name)
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('postal_code')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')

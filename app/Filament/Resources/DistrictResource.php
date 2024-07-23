@@ -18,7 +18,11 @@ class DistrictResource extends Resource
 {
     protected static ?string $model = District::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $modelLabel = 'Kecamatan';
+
+    protected static ?string $navigationIcon = 'heroicon-o-building-office';
+
+    protected static ?string $navigationGroup = 'Master Wilayah';
 
     public static function form(Form $form): Form
     {
@@ -40,13 +44,14 @@ class DistrictResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('city_id')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('code')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('city_id')
+                    ->label('Kabupaten/Kota')
+                    ->formatStateUsing(fn ($record) => $record->city->name)
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
