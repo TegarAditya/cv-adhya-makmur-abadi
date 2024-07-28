@@ -15,6 +15,8 @@ class EditOrder extends EditRecord
 
     protected bool $is_notifiable = false;
 
+    protected bool $is_tracking_number_notifiable = false;
+
     protected function getHeaderActions(): array
     {
         return [
@@ -29,14 +31,26 @@ class EditOrder extends EditRecord
         if ($data['is_notified']) {
             $this->is_notifiable = true;
         }
+
+        if ($data['is_tracking_notified']) {
+            $this->is_tracking_number_notifiable = true;
+        }
     }
 
     protected function afterSave(): void
     {
         $data = $this->record->toArray();
 
+        $data['tracking_number'] = $this->record->shipment->tracking_number;
+
+        $data['courier'] = $this->record->shipment->courier->name;
+
         if ($data['is_valid'] && $this->is_notifiable) {
             $this->sendNotification($data);
+        }
+
+        if ($data['tracking_number'] && $this->is_tracking_number_notifiable) {
+            $this->sendTrackingNumber($data);
         }
     }
 
@@ -56,6 +70,26 @@ class EditOrder extends EditRecord
                 'key' => env('CHAT_API_TOKEN'),
                 'phone' => $phoneNumber,
                 'message' => $this->buildMessage($data),
+            ],
+        ]);
+    }
+
+    /**
+     * Sends the tracking number to the student's phone number using a third-party API.
+     *
+     * @param array $data The data containing the student's phone number and other details.
+     * @return Response The response from the API after sending the tracking number.
+     */
+    private function sendTrackingNumber(array $data)
+    {
+        $client = new Client();
+        $phoneNumber = preg_replace('/^0/', '62', $data['student_phone']);
+
+        return $client->post(env('CHAT_API_URL'), [
+            'json' => [
+                'key' => env('CHAT_API_TOKEN'),
+                'phone' => $phoneNumber,
+                'message' => $this->buildTrackingNumberMessage($data),
             ],
         ]);
     }
@@ -84,7 +118,32 @@ class EditOrder extends EditRecord
             * Sekolah: {$data['school_name']}
             * Kelas: {$class}
 
-            _Tunjukkan pesan ini saat pengambilan buku. Waktu dan tempat pengambilan akan segera diinformasikan kembali_
+            _Nomor resi akan segera diinformasikan kembali_
+
+            *{$data['order_number']}*
+            HEREA;
+    }
+
+    /**
+     * Builds the tracking number message for an order.
+     *
+     * @param array $data The data for the order.
+     * @return string The tracking number message.
+     */
+    private function buildTrackingNumberMessage(array $data)
+    {
+        $class = \App\Models\Package::find($data['package_id'])->educationLevel->name;
+
+        return
+            <<<HEREA
+            *(PENGIRIMAN)*
+
+            *Salam Sahabat Pintar 👋*,
+
+            Pesanan Anda telah dikirimkan.
+
+            🚚 Kurir : *{$data['courier']}*
+            🗒️ No. Resi : *{$data['tracking_number']}*
 
             *{$data['order_number']}*
             HEREA;

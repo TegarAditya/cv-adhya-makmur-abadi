@@ -6,6 +6,7 @@ use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
 use Filament\Forms;
+use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -61,62 +62,93 @@ class OrderResource extends Resource
                             ->label('Metode Pembayaran')
                             ->content(fn ($record) => $record->paymentMethod->name),
                     ]),
-                // ->schema([
-                //     Forms\Components\TextInput::make('order_number')
-                //         ->label('Nomor Order')
-                //         ->disabled()
-                //         ->required()
-                //         ->maxLength(255),
-                //     Forms\Components\TextInput::make('student_name')
-                //         ->label('Nama Siswa')
-                //         ->disabled()
-                //         ->required()
-                //         ->maxLength(255),
-                //     Forms\Components\TextInput::make('student_email')
-                //         ->email()
-                //         ->label('Email Siswa')
-                //         ->disabled()
-                //         ->required()
-                //         ->maxLength(255),
-                //     Forms\Components\TextInput::make('student_phone')
-                //         ->tel()
-                //         ->label('Nomor Telepon')
-                //         ->disabled()
-                //         ->required()
-                //         ->maxLength(255),
-                //     Forms\Components\TextInput::make('school_name')
-                //         ->required()
-                //         ->label('Sekolah')
-                //         ->disabled()
-                //         ->maxLength(255),
-                //     Forms\Components\Select::make('package_id')
-                //         ->options(\App\Models\Package::all()->pluck('name', 'id')->toArray())
-                //         ->disabled()
-                //         ->required(),
-                //     Forms\Components\Select::make('payment_method_id')
-                //         ->disabled()
-                //         ->options(\App\Models\PaymentMethod::all()->pluck('name', 'id')->toArray())
-                //         ->required(),
-                // ]),
-                Section::make('Alamat Pengiriman')
-                    ->columns(4)
+                Section::make('Edit Detail Pesanan')
+                    ->columns(2)
+                    ->hidden()
                     ->schema([
-                        Forms\Components\Placeholder::make('city_id')
-                            ->label('Kota/Kabupaten')
-                            ->content(fn ($record) => $record->city->name),
-                        Forms\Components\Placeholder::make('district_id')
-                            ->label('Kecamatan')
-                            ->content(fn ($record) => $record->district->name),
-                        Forms\Components\Placeholder::make('subdistrict_id')
-                            ->label('Kelurahan/Desa')
-                            ->content(fn ($record) => $record->subdistrict->name),
-                        Forms\Components\Placeholder::make('postal_code')
-                            ->label('Kode Pos')
-                            ->content(fn ($record) => $record->subdistrict->postal_code),
-                        Forms\Components\Placeholder::make('address')
-                            ->label('Alamat lengkap')
-                            ->content(fn ($record) => new HtmlString('<strong>' . $record->address . ', ' . $record->subdistrict->name . ', ' . $record->district->name . ', ' . $record->city->name . ', KEPULAUAN RIAU ' . $record->subdistrict->postal_code . '<strong>'))
-                            ->columnSpanFull(),
+                        Forms\Components\TextInput::make('order_number')
+                            ->label('Nomor Order')
+                            ->disabled()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('student_name')
+                            ->label('Nama Siswa')
+                            ->disabled()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('student_email')
+                            ->email()
+                            ->label('Email Siswa')
+                            ->disabled()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('student_phone')
+                            ->tel()
+                            ->label('Nomor Telepon')
+                            ->disabled()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('school_name')
+                            ->required()
+                            ->label('Sekolah')
+                            ->disabled()
+                            ->maxLength(255),
+                        Forms\Components\Select::make('package_id')
+                            ->options(\App\Models\Package::all()->pluck('name', 'id')->toArray())
+                            ->disabled()
+                            ->required(),
+                        Forms\Components\Select::make('payment_method_id')
+                            ->disabled()
+                            ->options(\App\Models\PaymentMethod::all()->pluck('name', 'id')->toArray())
+                            ->required(),
+                    ]),
+                Section::make('Alamat Pengiriman')
+                    ->schema([
+                        Forms\Components\Fieldset::make('Alamat')
+                            ->columns(2)
+                            ->schema([
+                                Forms\Components\Placeholder::make('postal_code')
+                                    ->label('Kode Pos')
+                                    ->content(fn ($record) => $record->subdistrict->postal_code),
+                                Forms\Components\Placeholder::make('city_id')
+                                    ->label('Kota/Kabupaten')
+                                    ->content(fn ($record) => $record->city->name),
+                                Forms\Components\Placeholder::make('district_id')
+                                    ->label('Kecamatan')
+                                    ->content(fn ($record) => $record->district->name),
+                                Forms\Components\Placeholder::make('subdistrict_id')
+                                    ->label('Kelurahan/Desa')
+                                    ->content(fn ($record) => $record->subdistrict->name),
+                                Forms\Components\Placeholder::make('address')
+                                    ->label('Alamat lengkap')
+                                    ->content(fn ($record) =>  $record->address . ', ' . $record->subdistrict->name . ', ' . $record->district->name . ', ' . $record->city->name . ', KEPULAUAN RIAU. ' . ' Kode Pos: ' . $record->subdistrict->postal_code)
+                                    ->columnSpanFull(),
+                            ]),
+                        Forms\Components\Repeater::make('Pengiriman')
+                            ->hiddenLabel()
+                            ->addActionLabel('Tambah Kurir')
+                            ->columns(2)
+                            ->maxItems(1)
+                            ->relationship('shipment')
+                            ->columnSpanFull()
+                            ->schema([
+                                Forms\Components\Select::make('courier_id')
+                                    ->label('Kurir')
+                                    ->relationship('courier', 'name')
+                                    ->required(),
+                                Forms\Components\TextInput::make('tracking_number')
+                                    ->label('Nomor Resi')
+                                    ->required(),
+                            ]),
+                        Forms\Components\ToggleButtons::make('is_tracking_notified')
+                            ->label('Kirim Resi ke Pemesan?')
+                            ->options([
+                                '1' => 'Ya',
+                                '0' => 'Tidak',
+                            ])
+                            ->inline()
+                            ->required()
+                            ->dehydrated(),
                     ]),
                 Section::make('Konfirmasi Pembayaran')
                     ->columnSpanFull()

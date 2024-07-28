@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\City;
 use App\Models\District;
 use App\Models\Order;
+use App\Models\Package;
 use Filament\Actions\Action;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -200,10 +201,12 @@ class OrderPage extends SimplePage implements HasForms
                             Forms\Components\Select::make('payment_method_id')
                                 ->label('Pilih Metode Pembayaran')
                                 ->live()
+                                ->afterStateUpdated(function (Set $set, Get $get) {
+                                    $set('total_payment', Package::find($get('package_id'))->price);
+                                })
                                 ->columnSpanFull()
                                 ->options(\App\Models\PaymentMethod::all()->pluck('name', 'id')->toArray()),
-                            Forms\Components\Hidden::make('total_payment')
-                                ->default(75000),
+                            Forms\Components\Hidden::make('total_payment'),
                             Forms\Components\Section::make()
                                 ->label(null)
                                 ->columns([
@@ -344,6 +347,7 @@ class OrderPage extends SimplePage implements HasForms
     private function buildMessage(array $data)
     {
         $date = date('d/m/Y H:i:s');
+        $totalPayment = number_format($data['total_payment'], 2);
 
         return
             <<<HEREA
@@ -358,7 +362,7 @@ class OrderPage extends SimplePage implements HasForms
             * Kelas: {$data['grade']}
             * Tanggal: {$date}
             
-            > Jumlah: Rp 75.000,00
+            > Jumlah: Rp {$totalPayment}
 
             Tim kami akan segera menghubungi Anda setelah pesanan terverifikasi 3x24 jam kerja.
 

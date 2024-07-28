@@ -56,4 +56,9 @@ class Order extends Model
     {
         return $this->belongsTo(Subdistrict::class);
     }
+
+    public function shipment()
+    {
+        return $this->hasOne(Shipment::class);
+    }
 }
