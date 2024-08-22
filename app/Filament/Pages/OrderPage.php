@@ -116,6 +116,9 @@ class OrderPage extends SimplePage implements HasForms
                                 ->helperText('Pilih Kelas yang diinginkan')
                                 ->searchable()
                                 ->live()
+                                ->afterStateUpdated(function (Set $set) {
+                                    $set('package_id', null);
+                                })
                                 ->options(\App\Models\EducationLevel::all()->pluck('name', 'id')->toArray())
                                 ->required(),
                             Forms\Components\Select::make('package_id')
@@ -348,6 +351,8 @@ class OrderPage extends SimplePage implements HasForms
     {
         $date = date('d/m/Y H:i:s');
         $totalPayment = number_format($data['total_payment'], 2);
+        $semester = \App\Models\Semester::find($data['semester'])->name;
+        $level = \App\Models\EducationLevel::find($data['level'])->name;
 
         return
             <<<HEREA
@@ -358,8 +363,8 @@ class OrderPage extends SimplePage implements HasForms
             Detail pemesanan Anda adalah sebagai berikut:
             * Nama: {$data['student_name']}
             * Sekolah: {$data['school_name']}
-            * Semester: {$data['semester']}
-            * Kelas: {$data['grade']}
+            * Semester: {$semester}
+            * Kelas: {$level}
             * Tanggal: {$date}
             
             > Jumlah: Rp {$totalPayment}
