@@ -41,16 +41,17 @@ class EditOrder extends EditRecord
     {
         $data = $this->record->toArray();
 
-        $data['tracking_number'] = $this->record->shipment->tracking_number;
+        if ($this->record->shipment) {
+            $data['tracking_number'] = $this->record->shipment->tracking_number;
+            $data['courier'] = $this->record->shipment->courier->name;
 
-        $data['courier'] = $this->record->shipment->courier->name;
+            if ($data['tracking_number'] && $this->is_tracking_number_notifiable) {
+                $this->sendTrackingNumber($data);
+            }
+        }
 
         if ($data['is_valid'] && $this->is_notifiable) {
             $this->sendNotification($data);
-        }
-
-        if ($data['tracking_number'] && $this->is_tracking_number_notifiable) {
-            $this->sendTrackingNumber($data);
         }
     }
 
